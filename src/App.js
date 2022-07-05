@@ -24,6 +24,13 @@ const App = () => {
 
     setTargetCsv(newTargetCsv);
   }, [targetColumns]);
+
+  useEffect(() => {
+    console.log(csvFiles);
+
+    
+
+  }, [csvFiles]);
   // This function will be called when
   // the file input changes
   const handleFileChange = (event, index) => {
@@ -53,7 +60,6 @@ const App = () => {
         return csvFile;
       });
 
-      console.log(newCsvFiles);
 
       setCsvFiles(newCsvFiles);
     }
@@ -111,10 +117,8 @@ const App = () => {
   return (
     <Container>
       <h1>CSV combiner</h1>
-      {console.log(csvFiles)}
       <h2>CSV files</h2>
       <button onClick={addCsvFile}>add file</button>
-      {console.log(csvFiles)}
       <CSVFiles>
         {csvFiles &&
           Array.isArray(csvFiles) &&
@@ -164,7 +168,6 @@ const App = () => {
                       </tr>
                       <tr>
                         <td>Map to:</td>
-                        {console.log(targetColumns)}
                         {error
                           ? error
                           : csvFiles &&
