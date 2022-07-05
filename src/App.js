@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Papa from "papaparse";
 import styled from "styled-components";
 
@@ -8,6 +8,7 @@ const App = () => {
   const [targetColumns, setTargetColumns] = useState([]);
   const [targetColumnName, setTargetColumnName] = useState("");
   const [csvFiles, setCsvFiles] = useState([]);
+  const [targetCsv, setTargetCsv] = useState([]);
   // This state will store the parsed data
   const [data, setData] = useState([]);
 
@@ -18,6 +19,11 @@ const App = () => {
   // It will store the file uploaded by the user
   const [file, setFile] = useState("");
 
+  useEffect(() => {
+    const newTargetCsv = { ...targetCsv, headers: targetColumns };
+
+    setTargetCsv(newTargetCsv);
+  }, [targetColumns]);
   // This function will be called when
   // the file input changes
   const handleFileChange = (event, index) => {
@@ -104,8 +110,9 @@ const App = () => {
 
   return (
     <Container>
+      <h1>CSV combiner</h1>
       {console.log(csvFiles)}
-      <h1>CSV files</h1>
+      <h2>CSV files</h2>
       <button onClick={addCsvFile}>add file</button>
       {console.log(csvFiles)}
       <CSVFiles>
@@ -193,8 +200,7 @@ const App = () => {
                           csvFiles[index].data.slice(0, 2).map((row, idx) => (
                             <tr>
                               <td></td>
-                              {Object.values(row)
-                              .map((val, i) => (
+                              {Object.values(row).map((val, i) => (
                                 <td>{val}</td>
                               ))}
                             </tr>
@@ -234,6 +240,23 @@ const App = () => {
           }}
         ></input>
         <button onClick={addTargetColumn}>Add column</button>
+      </div>
+
+      <div>
+        <h2>Result</h2>
+        <CSVTable>
+          <thead>
+            <tr>
+              {targetCsv &&
+                targetCsv.hasOwnProperty("headers") &&
+                targetCsv.headers.length > 0 &&
+                targetCsv.headers.map((header, i) => {
+                  return <td>{header}</td>;
+                })}
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </CSVTable>
       </div>
     </Container>
   );
