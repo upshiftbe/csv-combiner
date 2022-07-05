@@ -1,5 +1,3 @@
-import logo from "./logo.svg";
-import "./App.css";
 import { useState } from "react";
 import Papa from "papaparse";
 import styled from "styled-components";
@@ -46,7 +44,7 @@ const App = () => {
         }
 
         // 👇️ otherwise return object as is
-        return csvFiles;
+        return csvFile;
       });
 
       console.log(newCsvFiles);
@@ -58,8 +56,6 @@ const App = () => {
     // If user clicks the parse button without
     // a file we show a error
     const file = csvFiles[index].file;
-    console.log("******FILE********");
-    console.log(csvFiles[index]);
     if (!file) return setError("Enter a valid file");
 
     // Initialize a reader which allows user
@@ -72,13 +68,13 @@ const App = () => {
       const csv = Papa.parse(target.result, { header: true });
       const parsedData = csv?.data;
       const columns = Object.keys(parsedData[0]);
-      const newCsvFiles = csvFiles.map((obj) => {
-        if (obj.id === index) {
-          return { ...obj, columns: columns };
+      const newCsvFiles = csvFiles.map((csvFile) => {
+        if (csvFile.id === index) {
+          return { ...csvFile, columns: columns, data: parsedData };
         }
 
         // 👇️ otherwise return object as is
-        return obj;
+        return csvFile;
       });
 
       setCsvFiles(newCsvFiles);
@@ -111,6 +107,7 @@ const App = () => {
       {console.log(csvFiles)}
       <h1>CSV files</h1>
       <button onClick={addCsvFile}>add file</button>
+      {console.log(csvFiles)}
       <CSVFiles>
         {csvFiles &&
           Array.isArray(csvFiles) &&
@@ -132,18 +129,78 @@ const App = () => {
                     Parse
                   </button>
                 </div>
+                <div>
+                  <h3>ID</h3>
+                  {csvFiles[index].id}
+                </div>
+                <div>
+                  <h3>File</h3>
+                  {csvFiles[index].name}
+                </div>
                 <div style={{ marginTop: "3rem" }}>
-                  {error
-                    ? error
-                    : csvFiles &&
-                      Array.isArray(csvFiles) &&
-                      csvFiles.length > 0 &&
-                      csvFiles[index] &&
-                      csvFiles[index].hasOwnProperty("columns") &&
-                      csvFiles[index].columns.length > 0 &&
-                      csvFiles[index].columns.map((col, idx) => (
-                        <div key={idx}>{col}</div>
-                      ))}
+                  <h3>Columns</h3>
+                  <CSVTable>
+                    <thead>
+                      <tr>
+                        <td>Columns</td>
+                        {error
+                          ? error
+                          : csvFiles &&
+                            Array.isArray(csvFiles) &&
+                            csvFiles.length > 0 &&
+                            csvFiles[index] &&
+                            csvFiles[index].hasOwnProperty("columns") &&
+                            csvFiles[index].columns.length > 0 &&
+                            csvFiles[index].columns.map((col, idx) => (
+                              <td key={idx}>{col}</td>
+                            ))}
+                      </tr>
+                      <tr>
+                        <td>Map to:</td>
+                        {console.log(targetColumns)}
+                        {error
+                          ? error
+                          : csvFiles &&
+                            Array.isArray(csvFiles) &&
+                            csvFiles.length > 0 &&
+                            csvFiles[index] &&
+                            csvFiles[index].hasOwnProperty("columns") &&
+                            csvFiles[index].columns.length > 0 &&
+                            csvFiles[index].columns.map((col, idx) => (
+                              <td key={idx}>
+                                <select>
+                                  {targetColumns.map((targetColumn, index) => {
+                                    return (
+                                      <option key={index}>
+                                        {targetColumn}
+                                      </option>
+                                    );
+                                  })}
+                                </select>
+                              </td>
+                            ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {error
+                        ? error
+                        : csvFiles &&
+                          Array.isArray(csvFiles) &&
+                          csvFiles.length > 0 &&
+                          csvFiles[index] &&
+                          csvFiles[index].hasOwnProperty("data") &&
+                          csvFiles[index].data.length > 0 &&
+                          csvFiles[index].data.slice(0, 2).map((row, idx) => (
+                            <tr>
+                              <td></td>
+                              {Object.values(row)
+                              .map((val, i) => (
+                                <td>{val}</td>
+                              ))}
+                            </tr>
+                          ))}
+                    </tbody>
+                  </CSVTable>
                 </div>
               </CSVFile>
             );
@@ -194,7 +251,6 @@ const CSVFile = styled.div`
   padding: 12px;
   border-radius: 5px;
   box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
-  max-width: 300px;
   margin: 20px;
 `;
 
@@ -202,4 +258,11 @@ const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 26px;
+`;
+
+const CSVTable = styled.table`
+  border: 1px solid black;
+  td {
+    border: 1px solid black;
+  }
 `;
