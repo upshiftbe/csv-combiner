@@ -7,7 +7,9 @@ const allowedExtensions = ["csv"];
 const App = () => {
   const [targetColumns, setTargetColumns] = useState([]);
   const [targetColumnName, setTargetColumnName] = useState("");
-  const [csvFiles, setCsvFiles] = useState([]);
+  const [csvFiles, setCsvFiles] = useState([
+    { id: 0, name: "N/A", data: [], file: null, mappings: [], columns: [] },
+  ]);
   const [targetCsv, setTargetCsv] = useState([]);
   // This state will store the parsed data
   const [data, setData] = useState([]);
@@ -27,9 +29,6 @@ const App = () => {
 
   useEffect(() => {
     console.log(csvFiles);
-
-    
-
   }, [csvFiles]);
   // This function will be called when
   // the file input changes
@@ -60,7 +59,6 @@ const App = () => {
         return csvFile;
       });
 
-
       setCsvFiles(newCsvFiles);
     }
   };
@@ -81,8 +79,12 @@ const App = () => {
       const parsedData = csv?.data;
       const columns = Object.keys(parsedData[0]);
       const newCsvFiles = csvFiles.map((csvFile) => {
+        const mappings = [];
+        for (let i = 0; i < columns.length; i++) {
+          mappings.push("-");
+        }
         if (csvFile.id === index) {
-          return { ...csvFile, columns: columns, data: parsedData };
+          return { ...csvFile, columns: columns, data: parsedData, mappings };
         }
 
         // 👇️ otherwise return object as is
@@ -113,6 +115,35 @@ const App = () => {
       { id: csvFiles.length, name: "unnamed", file: null, columns: [] },
     ]);
   };
+
+  const handleColumnMappings = (event, index, csvFileColumnIndex) => {
+    const newCsvFiles = csvFiles.map((csvFile) => {
+      const newMappings = csvFiles[index].mappings;
+      newMappings[csvFileColumnIndex] = event.target.value;
+
+      if (csvFile.id === index) {
+        return { ...csvFile, mappings: newMappings };
+      }
+      // 👇️ otherwise return object as is
+      return csvFile;
+    });
+
+    setCsvFiles(newCsvFiles);
+  };
+
+  useEffect(() => {
+    console.log("***UPDATE TARGET***");
+    for (let i; i++; i < csvFiles.length) {
+      const data = {};
+      for (let j = 0; j < csvFiles[i].columns.length; j++) {
+        data[csvFiles[i].columns[j]] = csvFiles[i].mappings[j];
+      }
+
+      const newTargetCsv = { ...targetCsv, data: data };
+      console.log(newTargetCsv);
+      setTargetCsv(newTargetCsv);
+    }
+  }, [csvFiles]);
 
   return (
     <Container>
@@ -162,9 +193,13 @@ const App = () => {
                             csvFiles[index] &&
                             csvFiles[index].hasOwnProperty("columns") &&
                             csvFiles[index].columns.length > 0 &&
-                            csvFiles[index].columns.map((col, idx) => (
-                              <td key={idx}>{col}</td>
-                            ))}
+                            csvFiles[index].columns.map(
+                              (csvFileColumn, csvFileColumnIndex) => (
+                                <td key={csvFileColumnIndex}>
+                                  {csvFileColumn}
+                                </td>
+                              )
+                            )}
                       </tr>
                       <tr>
                         <td>Map to:</td>
@@ -176,19 +211,37 @@ const App = () => {
                             csvFiles[index] &&
                             csvFiles[index].hasOwnProperty("columns") &&
                             csvFiles[index].columns.length > 0 &&
-                            csvFiles[index].columns.map((col, idx) => (
-                              <td key={idx}>
-                                <select>
-                                  {targetColumns.map((targetColumn, index) => {
-                                    return (
-                                      <option key={index}>
-                                        {targetColumn}
-                                      </option>
-                                    );
-                                  })}
-                                </select>
-                              </td>
-                            ))}
+                            csvFiles[index].columns.map(
+                              (_, csvFileColumnIndex) => (
+                                <td key={csvFileColumnIndex}>
+                                  <select
+                                    onChange={(event) =>
+                                      handleColumnMappings(
+                                        event,
+                                        index,
+                                        csvFileColumnIndex
+                                      )
+                                    }
+                                    value={
+                                      csvFiles[index].mappings[
+                                        csvFileColumnIndex
+                                      ]
+                                    }
+                                  >
+                                    <option>-</option>
+                                    {targetColumns.map(
+                                      (targetColumn, index) => {
+                                        return (
+                                          <option key={index}>
+                                            {targetColumn}
+                                          </option>
+                                        );
+                                      }
+                                    )}
+                                  </select>
+                                </td>
+                              )
+                            )}
                       </tr>
                     </thead>
                     <tbody>
@@ -218,18 +271,22 @@ const App = () => {
 
       <div>
         <h2>Target Columns</h2>
-        <ul>
-          {targetColumns.map((targetColumn, index) => {
-            return (
-              <li key={index}>
-                {targetColumn}
-                <button onClick={(event) => removeColumn(event, index)}>
-                  remove
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <CSVTable>
+          <tbody>
+            <tr>
+              {targetColumns.map((targetColumn, index) => {
+                return (
+                  <td key={index}>
+                    {targetColumn}
+                    <button onClick={(event) => removeColumn(event, index)}>
+                      remove
+                    </button>
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </CSVTable>
         <input
           type="text"
           id="inputColumnName"
@@ -258,7 +315,7 @@ const App = () => {
                 })}
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>{console.log(targetCsv.data)}</tbody>
         </CSVTable>
       </div>
     </Container>
