@@ -21,15 +21,6 @@ const App = () => {
   // It will store the file uploaded by the user
   const [file, setFile] = useState("");
 
-  useEffect(() => {
-    const newTargetCsv = { ...targetCsv, headers: targetColumns };
-
-    setTargetCsv(newTargetCsv);
-  }, [targetColumns]);
-
-  useEffect(() => {
-    console.log(csvFiles);
-  }, [csvFiles]);
   // This function will be called when
   // the file input changes
   const handleFileChange = (event, index) => {
@@ -132,21 +123,21 @@ const App = () => {
   };
 
   useEffect(() => {
-    console.log("***UPDATE TARGET***");
-    for (let i; i++; i < csvFiles.length) {
-      const data = {};
-      for (let j = 0; j < csvFiles[i].columns.length; j++) {
-        data[csvFiles[i].columns[j]] = csvFiles[i].mappings[j];
-      }
+    const newData = {};
+    console.log("targetColumns", targetColumns);
+    console.log("csvFiles[0].mappings", csvFiles[0].mappings);
 
-      const newTargetCsv = { ...targetCsv, data: data };
-      console.log(newTargetCsv);
-      setTargetCsv(newTargetCsv);
-    }
-  }, [csvFiles]);
+    setTargetCsv({
+      ...targetCsv,
+      columns: targetColumns,
+      data: newData,
+    });
+  }, [csvFiles, targetColumns]);
 
   return (
     <Container>
+      {console.log("csvFiles", csvFiles)}
+      {console.log("targetCsv", targetCsv)}
       <h1>CSV combiner</h1>
       <h2>CSV files</h2>
       <button onClick={addCsvFile}>add file</button>
@@ -255,7 +246,6 @@ const App = () => {
                           csvFiles[index].data.length > 0 &&
                           csvFiles[index].data.slice(0, 2).map((row, idx) => (
                             <tr>
-                              <td></td>
                               {Object.values(row).map((val, i) => (
                                 <td>{val}</td>
                               ))}
@@ -308,14 +298,25 @@ const App = () => {
           <thead>
             <tr>
               {targetCsv &&
-                targetCsv.hasOwnProperty("headers") &&
-                targetCsv.headers.length > 0 &&
-                targetCsv.headers.map((header, i) => {
-                  return <td>{header}</td>;
+                targetCsv.hasOwnProperty("columns") &&
+                targetCsv.columns.length > 0 &&
+                targetCsv.columns.map((column, i) => {
+                  return <td>{column}</td>;
                 })}
             </tr>
           </thead>
-          <tbody>{console.log(targetCsv.data)}</tbody>
+          {/* <tbody>
+            {targetCsv &&
+              targetCsv.hasOwnProperty("data") &&
+              targetCsv.data.map((field, index) => (
+                <tr>
+                  <td></td>
+                  {Object.values(field).map((val, i) => (
+                    <td>{val}</td>
+                  ))}
+                </tr>
+              ))}
+          </tbody> */}
         </CSVTable>
       </div>
     </Container>
